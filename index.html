@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Seal Previewer | Herald &amp; Bell</title>
+<title>Seal Previewer | Herald &amp; Bell Studio</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -93,7 +93,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
    straight through it. A light edge (top-left) and soft shadow (bottom-right) raise it. */
 .mono{
   position:absolute;inset:0;pointer-events:none;
-  filter:drop-shadow(.55cqw .75cqw .4cqw var(--sd)) drop-shadow(-.32cqw -.45cqw .2cqw var(--hi));
+  filter:drop-shadow(.7cqw .9cqw .45cqw var(--sd)) drop-shadow(-.3cqw -.4cqw .2cqw var(--hi));
 }
 .glyph{
   position:absolute;left:50%;top:50%;
@@ -129,7 +129,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 </head>
 <body>
 <main>
-  <div class="brand">Herald &amp; Bell</div>
+  <div class="brand">Herald &amp; Bell Studio</div>
   <h1>Seal Previewer</h1>
   <p class="listing" id="listingName"></p>
 
@@ -171,9 +171,10 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
      FONTS (shared by all listings)
      Real letter images: fonts/<folder>/sprite.png (A-Z in one sheet) + metrics.json
      cap   : cap height as % of seal width (bigger = larger letters)
-     ov    : how much the two letters overlap, as a share of the narrower letter's width.
+     ov    : overlap of the two letters, as a share of the narrower letter's width.
              0 = just touching, 0.3 = overlap by 30%, higher = more overlap
-     dy    : letter 1 sits dy% above centre, letter 2 dy% below
+     y1,y2 : height of letter 1 and letter 2 above (-) / below (+) centre, % of seal width.
+             Letter 1 higher up = make y1 more negative.
      align : "base"   = lines letters up on the baseline (clean serif fonts)
              "center" = lines up on the middle of each letter (swashy / script)
      by    : nudge up/down for align "base"
@@ -181,10 +182,10 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
              dx, dy = move that letter (% of seal width). sc = scale it.
      ------------------------------------------------------------------ */
   var FONTS = [
-    { id:1, name:"Symphony",           folder:"symphony",          cap:28, ov:.36, dy:4.5, align:"center", by:0, tweaks:{} },
-    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, ov:.28, dy:4, align:"base",   by:0, tweaks:{} },
-    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, ov:.28, dy:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
-    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, ov:.28, dy:4, align:"base",   by:0, tweaks:{} }
+    { id:1, name:"Symphony",           folder:"symphony",          cap:28, ov:.34, y1:-6,   y2:6, align:"center", by:0, tweaks:{} },
+    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, ov:.28, y1:-6.5, y2:4, align:"base",   by:0, tweaks:{} },
+    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, ov:.36, y1:-4,   y2:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
+    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, ov:.28, y1:-4,   y2:4, align:"base",   by:0, tweaks:{} }
   ];
 
   var SAMPLE = ["H","R"];
@@ -214,10 +215,33 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
   function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 
   /* ---------- render one seal ---------- */
-  /* Safe area inside the seal frame, as % of seal width. The pair of letters is
-     shrunk and centred automatically so it never crosses the frame.
-     Make w/h smaller = letters sit further inside the frame. */
-  var FIT = { w:45, h:52, cx:0, cy:0 };
+  /* The crest: the oval space inside the raised frame, in % of seal width, measured from the
+     seal centre. Letters are shrunk and moved until ALL their ink sits inside this oval,
+     so swash tails and long legs never cross the frame.
+     a = half width, b = half height. Smaller = letters sit further inside. */
+  var FRAME = { a:22, b:30, cx:0, cy:0 };
+
+  var OCC_N = 40, OCC = {};
+  /* Which small squares of a letter contain ink (read from the sprite). Used to test the real shape. */
+  function occupancy(font, ch){
+    var key = font.id + ch;
+    if(OCC.hasOwnProperty(key)) return OCC[key];
+    var cells = null;
+    try{
+      var lm = font.m.letters[ch], N = OCC_N;
+      var d = font.ctx.getImageData(lm.x, lm.y, lm.w, lm.h).data, grid = new Uint8Array(N * N);
+      for(var yy = 0; yy < lm.h; yy += 2){
+        var gy = Math.min(N - 1, Math.floor(yy / lm.h * N));
+        for(var xx = 0; xx < lm.w; xx += 2){
+          if(d[(yy * lm.w + xx) * 4 + 3] > 80){ grid[gy * N + Math.min(N - 1, Math.floor(xx / lm.w * N))] = 1; }
+        }
+      }
+      cells = [];
+      for(var i = 0; i < N * N; i++){ if(grid[i]){ cells.push([i % N, Math.floor(i / N)]); } }
+    }catch(e){ cells = null; }                      // e.g. page opened as a local file: fall back to the letter's box
+    OCC[key] = cells;
+    return cells;
+  }
 
   function place(font, ch, side){
     var lm = font.m.letters[ch];
@@ -225,30 +249,68 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     var tw = font.tweaks[ch] || {};
     var k = font.cap / font.m.capH * (tw.sc || 1);      // image px -> % of seal width
     var gw = lm.w * k, gh = lm.h * k;
-    var y = side * font.dy + (tw.dy || 0);
+    var y = (side < 0 ? font.y1 : font.y2) + (tw.dy || 0);
     if(font.align === "base"){ y += font.cap / 2 + (font.by || 0) - lm.base * k + gh / 2; }
     return { ch:ch, lm:lm, k:k, x:(tw.dx || 0), y:y, gw:gw, gh:gh };
   }
 
-  function glyphsHTML(font, pair, sealImg){
+  /* points that describe each letter's ink, in % of seal width from the seal centre */
+  function inkPoints(font, g){
+    var occ = occupancy(font, g.ch), pts = [], N = OCC_N;
+    var x0 = g.x - g.gw / 2, y0 = g.y - g.gh / 2;
+    if(!occ){
+      pts.push([x0, y0], [x0 + g.gw, y0], [x0, y0 + g.gh], [x0 + g.gw, y0 + g.gh]);
+    } else {
+      for(var i = 0; i < occ.length; i++){
+        var l = x0 + occ[i][0] / N * g.gw, r = x0 + (occ[i][0] + 1) / N * g.gw;
+        var t = y0 + occ[i][1] / N * g.gh, b = y0 + (occ[i][1] + 1) / N * g.gh;
+        pts.push([l, t], [r, t], [l, b], [r, b]);
+      }
+    }
+    return pts;
+  }
+
+  /* scale (<=1) needed to fit all points inside the crest when the group centre is at (cx, cy) */
+  function fitScale(pts, cx, cy){
+    var m = 0;
+    for(var i = 0; i < pts.length; i++){
+      var dx = (pts[i][0] - cx) / FRAME.a, dy = (pts[i][1] - cy) / FRAME.b, v = dx * dx + dy * dy;
+      if(v > m) m = v;
+    }
+    return m <= 1 ? 1 : 1 / Math.sqrt(m);
+  }
+
+  function layoutPair(font, pair){
     var g = [place(font, pair[0], -1), place(font, pair[1], 1)].filter(Boolean);
-    if(!g.length) return "";
-    if(g.length === 2){            // centres sit apart by a share of the letters' own width
+    if(!g.length) return null;
+    if(g.length === 2){            // centres sit apart by the letters' widths minus the overlap
       var sep = (g[0].gw + g[1].gw) / 2 - font.ov * Math.min(g[0].gw, g[1].gw);
       g[0].x += -sep / 2; g[1].x += sep / 2;
     }
+    var pts = [];
+    g.forEach(function(p){ pts = pts.concat(inkPoints(font, p)); });
     var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
-    g.forEach(function(p){
-      minX = Math.min(minX, p.x - p.gw/2); maxX = Math.max(maxX, p.x + p.gw/2);
-      minY = Math.min(minY, p.y - p.gh/2); maxY = Math.max(maxY, p.y + p.gh/2);
-    });
-    var s = Math.min(1, FIT.w / (maxX - minX), FIT.h / (maxY - minY));
-    var ccx = (minX + maxX) / 2, ccy = (minY + maxY) / 2;
-    return g.map(function(p){
-      var k = p.k * s;
-      var x = (p.x - ccx) * s + FIT.cx, y = (p.y - ccy) * s + FIT.cy;
-      var gw = p.gw*s, gh = p.gh*s;
-      var left = 50 + x - gw/2, top = 60 + y - gh/2;      // glyph corner inside the seal box (seal box is 100 x 120)
+    pts.forEach(function(q){ minX = Math.min(minX, q[0]); maxX = Math.max(maxX, q[0]); minY = Math.min(minY, q[1]); maxY = Math.max(maxY, q[1]); });
+    var bx = (minX + maxX) / 2, by = (minY + maxY) / 2;
+    // try a few small shifts of the whole monogram; keep the one that lets it stay biggest
+    var best = { s:-1, cx:bx, cy:by, score:-1 };
+    for(var ox = -5; ox <= 5; ox++){
+      for(var oy = -5; oy <= 5; oy++){
+        var sc = fitScale(pts, bx + ox, by + oy), score = sc - 0.004 * Math.sqrt(ox * ox + oy * oy);
+        if(score > best.score){ best = { s:sc, cx:bx + ox, cy:by + oy, score:score }; }
+      }
+    }
+    return { g:g, s:best.s, cx:best.cx, cy:best.cy };
+  }
+
+  function glyphsHTML(font, pair, sealImg){
+    var L = layoutPair(font, pair);
+    if(!L) return "";
+    return L.g.map(function(p){
+      var s = L.s, k = p.k * s;
+      var x = (p.x - L.cx) * s + FRAME.cx, y = (p.y - L.cy) * s + FRAME.cy;
+      var gw = p.gw * s, gh = p.gh * s;
+      var left = 50 + x - gw / 2, top = 60 + y - gh / 2;      // glyph corner inside the seal box (100 x 120)
       return '<div class="glyph" style="--gw:' + gw.toFixed(2) + ';--gh:' + gh.toFixed(2) +
              ';--bgx:' + (-left).toFixed(2) + ';--bgy:' + (-top).toFixed(2) +
              ';--seal:url(\'' + sealImg + '\')' +
@@ -258,6 +320,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
              ';--img:url(\'fonts/' + font.folder + '/sprite.png\')"></div>';
     }).join("");
   }
+  window.__seal = { FONTS: FONTS, FRAME: FRAME, layoutPair: layoutPair };   // for testing
 
   function sealHTML(listingId, colour, font, letters, isSample){
     var t = tones(colour.hex);
@@ -391,7 +454,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     L.id = id;
     state.listing = L;
     $("listingName").textContent = L.name;
-    document.title = L.name + " | Seal Previewer | Herald & Bell";
+    document.title = L.name + " | Seal Previewer | Herald & Bell Studio";
     $("tool").hidden = false;
 
     var input = $("initials");
@@ -413,9 +476,23 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
   function getJSON(url, opts){
     return fetch(url, opts).then(function(r){ if(!r.ok) throw new Error(url + " " + r.status); return r.json(); });
   }
+  function loadSprite(f){
+    return new Promise(function(resolve){
+      var im = new Image();
+      im.onload = function(){
+        try{
+          var c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+          f.ctx = c.getContext("2d", { willReadFrequently:true }); f.ctx.drawImage(im, 0, 0);
+        }catch(e){ f.ctx = null; }
+        resolve();
+      };
+      im.onerror = function(){ f.ctx = null; resolve(); };
+      im.src = "fonts/" + f.folder + "/sprite.png";
+    });
+  }
   function loadFonts(){
     return Promise.all(FONTS.map(function(f){
-      return getJSON("fonts/" + f.folder + "/metrics.json").then(function(m){ f.m = m; });
+      return getJSON("fonts/" + f.folder + "/metrics.json").then(function(m){ f.m = m; }).then(function(){ return loadSprite(f); });
     }));
   }
   Promise.all([getJSON("listings.json", {cache:"no-cache"}), loadFonts()])
