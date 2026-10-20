@@ -450,8 +450,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 
   function choiceText(){
     var L = state.listing, f = FONTS[state.font-1], l = state.letters;
-    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id + " · " +
-           L.colours.map(function(c){return c.name;}).join(", ");
+    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id;
   }
 
   function renderCopy(){
