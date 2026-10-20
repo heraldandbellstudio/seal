@@ -52,7 +52,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 .chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 
 /* font gallery */
-.fonts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fonts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:480px;margin:0 auto}
 .fontcard{
   position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
   padding:10px 10px 12px;cursor:pointer;text-align:center;font:inherit;color:var(--ink);
@@ -134,9 +134,6 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 .msg h2{margin-bottom:10px}
 [hidden]{display:none!important}
 
-@media (min-width:600px){
-  .fonts{grid-template-columns:repeat(4,1fr)}
-}
 </style>
 </head>
 <body>
@@ -149,6 +146,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     <strong>Mock-up only</strong>
     This preview helps you choose your initials, lettering and colour. It is <b>not a photo of your seal</b>.
     Your final seal will look like the seals shown in our product listing: hand-finished, with natural variation in wax, texture and lettering.
+    The placement of your initials will be fine-tuned by hand, so they overlap and sit in a presentable way.
   </div>
 
   <!-- friendly error -->
@@ -167,7 +165,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     </div>
 
     <h2><span>2</span>Pick a lettering style</h2>
-    <p class="hint">Each style draws letters differently. Check yours in all four, then tap one.</p>
+    <p class="hint">Each style draws letters differently. Check yours in both, then tap one.</p>
     <div class="chips" id="galleryChips" role="group" aria-label="Preview colour"></div>
     <div class="fonts" id="fonts" role="radiogroup" aria-label="Font"></div>
 
@@ -210,9 +208,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
      ------------------------------------------------------------------ */
   var FONTS = [
     { id:1, folder:"symphony",          cap:28, dark:1.6, vo:.30, ink:.07, near:.10, tweaks:{} },
-    { id:2, folder:"silver-edition",    cap:29, vo:.62, ink:.015, near:.72, tweaks:{} },
-    { id:3, folder:"cinzel-decorative", cap:25, vo:.34, ink:.05, near:.30, tweaks:{ Q:{sc:.82} } },
-    { id:4, folder:"tan-aegean",        cap:25, vo:.40, ink:.06, near:.30, tweaks:{} }
+    { id:2, folder:"silver-edition",    cap:29, vo:.62, ink:.015, near:.72, tweaks:{} }
   ];
 
   var SAMPLE = ["H","R"];
