@@ -1,0 +1,10 @@
+{
+  "vintage-lace": {
+    "name": "Vintage Lace Romance",
+    "colours": [
+      { "name": "Gold",  "hex": "#d1b36e" },
+      { "name": "Sage",  "hex": "#adb08b" },
+      { "name": "Cream", "hex": "#f0d68a" }
+    ]
+  }
+}

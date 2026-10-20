@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seal Previewer | Herald &amp; Bell</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#f3eee9;
+  --card:#fbf8f4;
+  --ink:#604829;
+  --line:rgba(96,72,41,.22);
+  --soft:rgba(96,72,41,.62);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Montserrat",system-ui,sans-serif;font-size:16px;line-height:1.45;
+}
+main{max-width:720px;margin:0 auto;padding:28px 16px 56px}
+h1,h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:2rem;line-height:1.1;text-align:center}
+.brand{text-align:center;font-size:.75rem;letter-spacing:.22em;text-transform:uppercase;color:var(--soft);margin-bottom:6px}
+.listing{text-align:center;color:var(--soft);margin:6px 0 24px}
+h2{font-size:1.35rem;margin:30px 0 10px}
+h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-align:center;border:1px solid var(--ink);border-radius:50%;font-size:.8em;margin-right:8px;font-family:"Montserrat",sans-serif;font-weight:500}
+.hint{color:var(--soft);font-size:.875rem;margin:0 0 12px}
+
+/* initials input */
+.initials{display:flex;gap:12px;align-items:center;justify-content:center}
+.initials input{
+  width:100%;max-width:260px;text-align:center;
+  font:500 1.6rem "Montserrat",sans-serif;letter-spacing:.35em;text-indent:.35em;text-transform:uppercase;
+  padding:12px;border:1px solid var(--ink);border-radius:10px;background:var(--card);color:var(--ink);
+}
+.initials input:focus{outline:3px solid rgba(96,72,41,.25)}
+.initials input::placeholder{color:rgba(96,72,41,.3);letter-spacing:.35em}
+
+/* colour chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;
+  border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:.875rem;cursor:pointer;
+}
+.chip i{width:14px;height:14px;border-radius:50%;background:var(--c);border:1px solid rgba(0,0,0,.2)}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+
+/* font gallery */
+.fonts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fontcard{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:10px 10px 12px;cursor:pointer;text-align:center;font:inherit;color:var(--ink);
+}
+.fontcard[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.fontcard .num{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.fontcard .fname{font-size:.875rem;font-weight:500;margin-top:6px}
+.fontcard .tick{
+  position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;
+  border:1px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:transparent;
+}
+.fontcard[aria-checked="true"] .tick{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* seal */
+.seals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sealwrap{text-align:center}
+.sealwrap .cname{font-size:.875rem;font-weight:500;margin-top:4px}
+.seal{
+  position:relative;container-type:inline-size;width:100%;max-width:240px;margin:0 auto;aspect-ratio:5/6;
+}
+/* fallback wax (shows until a seal PNG exists) */
+.seal .wax{
+  position:absolute;inset:4% 3%;border-radius:50% 48% 50% 47% / 52% 50% 48% 50%;
+  background:
+    radial-gradient(ellipse at 32% 24%, var(--hi) 0%, transparent 46%),
+    radial-gradient(ellipse at 70% 80%, rgba(0,0,0,.28) 0%, transparent 55%),
+    var(--wax);
+  box-shadow:inset 0 0 0 1.2cqw rgba(255,255,255,.12), inset 0 0 3cqw rgba(0,0,0,.25), 0 1.5cqw 3cqw rgba(0,0,0,.18);
+}
+.seal .wax::after{
+  content:"";position:absolute;inset:11% 13%;border-radius:50%/46%;
+  border:.9cqw solid rgba(0,0,0,.16);box-shadow:0 .5cqw 0 rgba(255,255,255,.25);
+}
+.seal img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.seal.noimg img{display:none}
+
+/* monogram: two real letter images used as masks, tinted per wax colour.
+   Letter 1 sits up-left, letter 2 down-right, overlapping. */
+.mono{
+  position:absolute;inset:0;pointer-events:none;
+  filter:drop-shadow(0 .5cqw 0 var(--hi)) drop-shadow(0 -.35cqw 0 rgba(0,0,0,.30));
+}
+.glyph{
+  position:absolute;left:50%;top:50%;
+  width:calc(var(--gw) * 1cqw);height:calc(var(--gh) * 1cqw);
+  transform:translate(calc(-50% + var(--x) * 1cqw),calc(-50% + var(--y) * 1cqw));
+  background:var(--ink-wax);
+  -webkit-mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
+          mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
+}
+.sample .mono{opacity:.45}
+
+/* actions */
+.copy{
+  display:block;width:100%;max-width:420px;margin:24px auto 0;padding:15px;border:0;border-radius:10px;
+  background:var(--ink);color:#fff;font:500 1rem "Montserrat",sans-serif;cursor:pointer;
+}
+.copy:disabled{opacity:.4;cursor:not-allowed}
+.out{
+  display:none;margin:14px auto 0;max-width:520px;padding:12px 14px;background:var(--card);
+  border:1px dashed var(--ink);border-radius:10px;font-size:.9rem;word-break:break-word;text-align:center
+}
+.out.show{display:block}
+.out small{display:block;color:var(--soft);margin-top:6px}
+.note{text-align:center;color:var(--soft);font-size:.8rem;margin-top:22px}
+.msg{text-align:center;padding:40px 8px}
+.msg h2{margin-bottom:10px}
+[hidden]{display:none!important}
+
+@media (min-width:600px){
+  .fonts{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">Herald &amp; Bell</div>
+  <h1>Seal Previewer</h1>
+  <p class="listing" id="listingName"></p>
+
+  <!-- friendly error -->
+  <section class="msg" id="errorBox" hidden>
+    <h2>We could not find that listing</h2>
+    <p>Please open this page from the link on your Etsy listing, or message us and we will help.</p>
+  </section>
+
+  <!-- tool -->
+  <section id="tool" hidden>
+    <h2><span>1</span>Type your initials</h2>
+    <p class="hint">Two letters. Example: H and R.</p>
+    <div class="initials">
+      <input id="initials" type="text" inputmode="text" autocomplete="off" autocapitalize="characters"
+             spellcheck="false" placeholder="HR" aria-label="Your two initials">
+    </div>
+
+    <h2><span>2</span>Pick a font</h2>
+    <p class="hint">Each font draws letters differently. Check yours in all four, then tap one.</p>
+    <div class="chips" id="galleryChips" role="group" aria-label="Preview colour"></div>
+    <div class="fonts" id="fonts" role="radiogroup" aria-label="Font"></div>
+
+    <h2><span>3</span>See your seals</h2>
+    <p class="hint" id="sealsHint"></p>
+    <div class="seals" id="seals"></div>
+
+    <button class="copy" id="copyBtn" type="button" disabled>Copy my choice</button>
+    <div class="out" id="out" aria-live="polite"></div>
+    <p class="note">Preview only: your final seal is hand-finished.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ------------------------------------------------------------------
+     FONTS (shared by all listings)
+     Real letter images: fonts/<folder>/sprite.png (A-Z in one sheet) + metrics.json
+     cap   : cap height as % of seal width (bigger = larger letters)
+     dx    : letter 1 sits dx% left of centre, letter 2 dx% right
+     dy    : letter 1 sits dy% above centre, letter 2 dy% below
+     align : "base"   = lines letters up on the baseline (clean serif fonts)
+             "center" = lines up on the middle of each letter (swashy / script)
+     by    : nudge up/down for align "base"
+     tweaks: fix one letter in one font only, e.g. { J:{dy:2}, Q:{sc:.9, dx:-1} }
+             dx, dy = move that letter (% of seal width). sc = scale it.
+     ------------------------------------------------------------------ */
+  var FONTS = [
+    { id:1, name:"Symphony",           folder:"symphony",          cap:25, dx:8,  dy:4.5, align:"center", by:0, tweaks:{} },
+    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, dx:8,  dy:4, align:"base",   by:0, tweaks:{} },
+    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, dx:9,  dy:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
+    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, dx:9,  dy:4, align:"base",   by:0, tweaks:{} }
+  ];
+
+  var SAMPLE = ["H","R"];
+  var state = { listing:null, letters:"", font:1, galleryColour:0 };
+  var $ = function(id){ return document.getElementById(id); };
+
+  /* ---------- colour helpers (derive emboss tones from the wax hex) ---------- */
+  function hexToRgb(h){
+    h = h.replace("#","");
+    if(h.length===3) h = h.split("").map(function(c){return c+c;}).join("");
+    var n = parseInt(h,16);
+    return [(n>>16)&255,(n>>8)&255,n&255];
+  }
+  function mix(rgb, target, t){
+    return rgb.map(function(v,i){ return Math.round(v + (target[i]-v)*t); });
+  }
+  function css(rgb, a){ return a==null ? "rgb("+rgb.join(",")+")" : "rgba("+rgb.join(",")+","+a+")"; }
+  function tones(hex){
+    var base = hexToRgb(hex);
+    return {
+      wax: css(base),
+      ink: css(mix(base,[0,0,0],.40)),
+      hi : css(mix(base,[255,255,255],.55), .9)
+    };
+  }
+  function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+
+  /* ---------- render one seal ---------- */
+  function glyph(font, ch, side){
+    var lm = font.m.letters[ch];
+    if(!lm) return "";
+    var tw = font.tweaks[ch] || {};
+    var k = font.cap / font.m.capH * (tw.sc || 1);      // image px -> % of seal width
+    var gw = lm.w * k, gh = lm.h * k;
+    var x = side * font.dx + (tw.dx || 0);
+    var y = side * font.dy + (tw.dy || 0);
+    if(font.align === "base"){ y += font.cap / 2 + (font.by || 0) - lm.base * k + gh / 2; }
+    return '<div class="glyph" style="--gw:' + gw.toFixed(2) + ';--gh:' + gh.toFixed(2) +
+           ';--x:' + x.toFixed(2) + ';--y:' + y.toFixed(2) +
+           ';--mx:' + (-lm.x * k).toFixed(3) + ';--my:' + (-lm.y * k).toFixed(3) +
+           ';--sw:' + (font.m.sheet.w * k).toFixed(3) + ';--sh:' + (font.m.sheet.h * k).toFixed(3) +
+           ';--img:url(\'fonts/' + font.folder + '/sprite.png\')"></div>';
+  }
+
+  function sealHTML(listingId, colour, font, letters, isSample){
+    var t = tones(colour.hex);
+    var img = colour.image || ("seals/" + listingId + "/" + slug(colour.name) + ".png");
+    return (
+      '<div class="seal'+(isSample?' sample':'')+'" style="--wax:'+t.wax+';--ink-wax:'+t.ink+';--hi:'+t.hi+'">' +
+        '<div class="wax"></div>' +
+        '<img src="'+img+'" alt="" loading="lazy">' +
+        '<div class="mono">' + glyph(font, letters[0], -1) + glyph(font, letters[1], 1) + '</div>' +
+      '</div>'
+    );
+  }
+
+  /* a PNG that fails to load keeps the CSS wax; a PNG that loads hides it */
+  function wireImages(root){
+    var imgs = root.querySelectorAll(".seal img");
+    Array.prototype.forEach.call(imgs, function(im){
+      var seal = im.closest(".seal");
+      function ok(){ seal.classList.remove("noimg"); var w = seal.querySelector(".wax"); if(w) w.style.display="none"; }
+      function bad(){ seal.classList.add("noimg"); }
+      im.addEventListener("load", ok);
+      im.addEventListener("error", bad);
+      if(im.complete){ im.naturalWidth ? ok() : bad(); }
+    });
+  }
+
+  function currentLetters(){
+    var l = state.letters;
+    return {
+      pair: [l[0] || SAMPLE[0], l[1] || SAMPLE[1]],
+      sample: l.length < 2
+    };
+  }
+
+  /* ---------- UI render ---------- */
+  function renderChips(){
+    var L = state.listing, box = $("galleryChips");
+    box.innerHTML = "";
+    L.colours.forEach(function(c,i){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip";
+      b.setAttribute("aria-pressed", i===state.galleryColour ? "true":"false");
+      b.style.setProperty("--c", c.hex);
+      b.innerHTML = "<i></i>";
+      b.appendChild(document.createTextNode(c.name));
+      b.addEventListener("click", function(){ state.galleryColour = i; renderChips(); renderFonts(); });
+      box.appendChild(b);
+    });
+  }
+
+  function renderFonts(){
+    var L = state.listing, cur = currentLetters(), box = $("fonts");
+    var colour = L.colours[state.galleryColour];
+    box.innerHTML = "";
+    FONTS.forEach(function(f){
+      var card = document.createElement("button");
+      card.type = "button"; card.className = "fontcard";
+      card.setAttribute("role","radio");
+      card.setAttribute("aria-checked", f.id===state.font ? "true":"false");
+      card.innerHTML =
+        '<span class="tick">&#10003;</span>' +
+        sealHTML(L.id, colour, f, cur.pair, cur.sample) +
+        '<div class="num">Font '+f.id+'</div><div class="fname">'+f.name+'</div>';
+      card.addEventListener("click", function(){ state.font = f.id; renderFonts(); renderSeals(); renderCopy(); });
+      box.appendChild(card);
+    });
+    wireImages(box);
+  }
+
+  function renderSeals(){
+    var L = state.listing, cur = currentLetters(), font = FONTS[state.font-1], box = $("seals");
+    box.innerHTML = "";
+    L.colours.forEach(function(c){
+      var w = document.createElement("div");
+      w.className = "sealwrap";
+      w.innerHTML = sealHTML(L.id, c, font, cur.pair, cur.sample) + '<div class="cname">'+c.name+'</div>';
+      box.appendChild(w);
+    });
+    $("sealsHint").textContent = cur.sample
+      ? "Showing sample letters. Type your two initials above."
+      : "Font "+font.id+" ("+font.name+") on each colour.";
+    wireImages(box);
+  }
+
+  function choiceText(){
+    var L = state.listing, f = FONTS[state.font-1], l = state.letters;
+    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id + " (" + f.name + ") · " +
+           L.colours.map(function(c){return c.name;}).join(", ");
+  }
+
+  function renderCopy(){
+    var ready = state.letters.length === 2;
+    $("copyBtn").disabled = !ready;
+    $("out").classList.remove("show");
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && window.isSecureContext){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(res, rej){
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand("copy") ? res() : rej(); }catch(e){ rej(e); }
+      document.body.removeChild(ta);
+    });
+  }
+
+  function showOut(text, copied){
+    var out = $("out");
+    out.textContent = text;
+    var s = document.createElement("small");
+    s.textContent = copied
+      ? "Copied. Paste it into the Personalisation box on Etsy."
+      : "Could not copy automatically. Select the text above and copy it, then paste it into the Personalisation box on Etsy.";
+    out.appendChild(s);
+    out.classList.add("show");
+  }
+
+  /* ---------- init ---------- */
+  function fail(){
+    $("tool").hidden = true;
+    $("errorBox").hidden = false;
+  }
+
+  function init(listings){
+    var id = (new URLSearchParams(location.search).get("listing") || "").toLowerCase().trim();
+    var L = Object.prototype.hasOwnProperty.call(listings, id) ? listings[id] : null;
+    if(!L || !L.colours || !L.colours.length){ return fail(); }
+    L.id = id;
+    state.listing = L;
+    $("listingName").textContent = L.name;
+    document.title = L.name + " | Seal Previewer | Herald & Bell";
+    $("tool").hidden = false;
+
+    var input = $("initials");
+    input.addEventListener("input", function(){
+      var v = input.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,2);
+      input.value = v;
+      state.letters = v;
+      renderFonts(); renderSeals(); renderCopy();
+    });
+
+    $("copyBtn").addEventListener("click", function(){
+      var text = choiceText();
+      copyText(text).then(function(){ showOut(text,true); }, function(){ showOut(text,false); });
+    });
+
+    renderChips(); renderFonts(); renderSeals(); renderCopy();
+  }
+
+  function getJSON(url, opts){
+    return fetch(url, opts).then(function(r){ if(!r.ok) throw new Error(url + " " + r.status); return r.json(); });
+  }
+  function loadFonts(){
+    return Promise.all(FONTS.map(function(f){
+      return getJSON("fonts/" + f.folder + "/metrics.json").then(function(m){ f.m = m; });
+    }));
+  }
+  Promise.all([getJSON("listings.json", {cache:"no-cache"}), loadFonts()])
+    .then(function(res){ init(res[0]); })
+    .catch(fail);
+})();
+</script>
+</body>
+</html>
