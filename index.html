@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Seal Previewer | Herald &amp; Bell Studio</title>
+<title>Seal Mock-up | Herald &amp; Bell Studio</title>
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,7 +59,6 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 }
 .fontcard[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .fontcard .num{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
-.fontcard .fname{font-size:.875rem;font-weight:500;margin-top:6px}
 .fontcard .tick{
   position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;
   border:1px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:transparent;
@@ -99,7 +98,10 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
   position:absolute;left:50%;top:50%;
   width:calc(var(--gw) * 1cqw);height:calc(var(--gh) * 1cqw);
   transform:translate(calc(-50% + var(--x) * 1cqw),calc(-50% + var(--y) * 1cqw));
-  background:var(--seal) calc(var(--bgx) * 1cqw) calc(var(--bgy) * 1cqw) / 100cqw 120cqw no-repeat, var(--wax);
+  background-image:linear-gradient(var(--deep),var(--deep)), var(--seal), linear-gradient(var(--wax),var(--wax));
+  background-size:100% 100%, 100cqw 120cqw, 100% 100%;
+  background-position:0 0, calc(var(--bgx) * 1cqw) calc(var(--bgy) * 1cqw), 0 0;
+  background-repeat:no-repeat;
   -webkit-mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
           mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
 }
@@ -117,7 +119,17 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 }
 .out.show{display:block}
 .out small{display:block;color:var(--soft);margin-top:6px}
-.note{text-align:center;color:var(--soft);font-size:.8rem;margin-top:22px}
+.mockup{
+  margin:0 0 22px;padding:14px 16px;border:2px solid var(--ink);border-radius:12px;background:var(--card);
+  text-align:center;font-size:.9rem;line-height:1.5;
+}
+.mockup strong{display:block;font:600 1.15rem "Cormorant Garamond",Georgia,serif;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
+.mockup b{font-weight:600}
+.sealtag{text-align:center;font-size:.78rem;color:var(--soft);margin:10px 0 0}
+.legal{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);color:var(--soft);font-size:.72rem;line-height:1.55;text-align:left}
+.legal p{margin:0 0 8px}
+.seal,.seal img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.seal img{-webkit-user-drag:none}
 .msg{text-align:center;padding:40px 8px}
 .msg h2{margin-bottom:10px}
 [hidden]{display:none!important}
@@ -130,8 +142,14 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 <body>
 <main>
   <div class="brand">Herald &amp; Bell Studio</div>
-  <h1>Seal Previewer</h1>
+  <h1>Seal Mock-up</h1>
   <p class="listing" id="listingName"></p>
+
+  <div class="mockup" role="note">
+    <strong>Mock-up only</strong>
+    This preview helps you choose your initials, lettering and colour. It is <b>not a photo of your seal</b>.
+    Your final seal will look like the seals shown in our product listing: hand-finished, with natural variation in wax, texture and lettering.
+  </div>
 
   <!-- friendly error -->
   <section class="msg" id="errorBox" hidden>
@@ -148,8 +166,8 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
              spellcheck="false" placeholder="HR" aria-label="Your two initials">
     </div>
 
-    <h2><span>2</span>Pick a font</h2>
-    <p class="hint">Each font draws letters differently. Check yours in all four, then tap one.</p>
+    <h2><span>2</span>Pick a lettering style</h2>
+    <p class="hint">Each style draws letters differently. Check yours in all four, then tap one.</p>
     <div class="chips" id="galleryChips" role="group" aria-label="Preview colour"></div>
     <div class="fonts" id="fonts" role="radiogroup" aria-label="Font"></div>
 
@@ -159,8 +177,16 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 
     <button class="copy" id="copyBtn" type="button" disabled>Copy my choice</button>
     <div class="out" id="out" aria-live="polite"></div>
-    <p class="note">Preview only: your final seal is hand-finished.</p>
+    <p class="sealtag"><b>Preview only.</b> Your final seal is hand-finished and will look like our product listing, not this mock-up.</p>
   </section>
+
+  <footer class="legal">
+    <p>&copy; 2026 Herald &amp; Bell Studio. All rights reserved.</p>
+    <p>This previewer, including its seal imagery, lettering artwork, layout and code, is the copyright of Herald &amp; Bell Studio and is provided for personal use by customers and prospective customers of our shop only. You may not copy, scrape, reproduce, adapt, resell or redistribute any part of it, or use it to create or sell competing products, without our written permission.</p>
+    <p>Mock-ups are illustrations only. They are not a guarantee of how a finished product will look and do not form part of the product description or the contract of sale. Handmade items vary. Your final seal is made to your Etsy order details and follows our product listing photos, which take priority over this preview.</p>
+    <p>Typefaces and any third-party names remain the property of their respective owners. No rights in them are transferred to you. Etsy is a trademark of Etsy, Inc.; Herald &amp; Bell Studio is not affiliated with or endorsed by Etsy, Inc.</p>
+    <p>This notice does not affect your statutory rights.</p>
+  </footer>
 </main>
 
 <script>
@@ -168,24 +194,25 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
   "use strict";
 
   /* ------------------------------------------------------------------
-     FONTS (shared by all listings)
+     LETTERING STYLES (shared by all listings). Names are deliberately not shown anywhere.
      Real letter images: fonts/<folder>/sprite.png (A-Z in one sheet) + metrics.json
      cap   : cap height as % of seal width (bigger = larger letters)
-     ov    : overlap of the two letters, as a share of the narrower letter's width.
-             0 = just touching, 0.3 = overlap by 30%, higher = more overlap
-     y1,y2 : height of letter 1 and letter 2 above (-) / below (+) centre, % of seal width.
-             Letter 1 higher up = make y1 more negative.
-     align : "base"   = lines letters up on the baseline (clean serif fonts)
-             "center" = lines up on the middle of each letter (swashy / script)
-     by    : nudge up/down for align "base"
-     tweaks: fix one letter in one font only, e.g. { J:{dy:2}, Q:{sc:.9, dx:-1} }
+     vo    : how much the two letters overlap UP/DOWN, as a share of the shorter letter's height.
+             0 = letter 2 starts where letter 1 ends, 0.4 = overlap by 40%.
+     ink   : how much the letters' actual ink may overlap SIDEWAYS (share of the smaller letter).
+             The second letter slides toward the first until its strokes touch this much,
+             so round or swashy letters tuck in and straight letters stay apart.
+             0.02 = barely touching, 0.12 = clearly crossing.
+     dark  : how strong the pressed-in shading is (1 = normal; thin scripts need more).
+     near  : closest the letters may ever get sideways (share of their combined width).
+     tweaks: fix one letter in one style only, e.g. { J:{dy:2}, Q:{sc:.9, dx:-1} }
              dx, dy = move that letter (% of seal width). sc = scale it.
      ------------------------------------------------------------------ */
   var FONTS = [
-    { id:1, name:"Symphony",           folder:"symphony",          cap:28, ov:.34, y1:-6,   y2:6, align:"center", by:0, tweaks:{} },
-    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, ov:.28, y1:-6.5, y2:4, align:"base",   by:0, tweaks:{} },
-    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, ov:.36, y1:-4,   y2:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
-    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, ov:.28, y1:-4,   y2:4, align:"base",   by:0, tweaks:{} }
+    { id:1, folder:"symphony",          cap:28, dark:1.6, vo:.30, ink:.07, near:.10, tweaks:{} },
+    { id:2, folder:"silver-edition",    cap:29, vo:.62, ink:.015, near:.72, tweaks:{} },
+    { id:3, folder:"cinzel-decorative", cap:25, vo:.34, ink:.05, near:.30, tweaks:{ Q:{sc:.82} } },
+    { id:4, folder:"tan-aegean",        cap:25, vo:.40, ink:.06, near:.30, tweaks:{} }
   ];
 
   var SAMPLE = ["H","R"];
@@ -203,13 +230,14 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     return rgb.map(function(v,i){ return Math.round(v + (target[i]-v)*t); });
   }
   function css(rgb, a){ return a==null ? "rgb("+rgb.join(",")+")" : "rgba("+rgb.join(",")+","+a+")"; }
-  function tones(hex){
+  function tones(hex, dark){
     var base = hexToRgb(hex);
     return {
       wax: css(base),
       ink: css(mix(base,[0,0,0],.40)),
       hi : css(mix(base,[255,255,255],.75), .95),   // light edge, top-left of each letter
-      sd : css(mix(base,[0,0,0],.65), .80)          // soft shadow, bottom-right of each letter
+      sd : css(mix(base,[0,0,0],.65), .85),         // soft shadow, bottom-right of each letter
+      deep: css(mix(base,[0,0,0],.5), Math.min(.85, .48 * (dark || 1)))          // darkens the pressed letters so they read clearly
     };
   }
   function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
@@ -221,12 +249,12 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
      a = half width, b = half height. Smaller = letters sit further inside. */
   var FRAME = { a:22, b:30, cx:0, cy:0 };
 
-  var OCC_N = 40, OCC = {};
+  var OCC_N = 48, OCC = {};
   /* Which small squares of a letter contain ink (read from the sprite). Used to test the real shape. */
   function occupancy(font, ch){
     var key = font.id + ch;
     if(OCC.hasOwnProperty(key)) return OCC[key];
-    var cells = null;
+    var res = null;
     try{
       var lm = font.m.letters[ch], N = OCC_N;
       var d = font.ctx.getImageData(lm.x, lm.y, lm.w, lm.h).data, grid = new Uint8Array(N * N);
@@ -236,22 +264,21 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
           if(d[(yy * lm.w + xx) * 4 + 3] > 80){ grid[gy * N + Math.min(N - 1, Math.floor(xx / lm.w * N))] = 1; }
         }
       }
-      cells = [];
+      var cells = [];
       for(var i = 0; i < N * N; i++){ if(grid[i]){ cells.push([i % N, Math.floor(i / N)]); } }
-    }catch(e){ cells = null; }                      // e.g. page opened as a local file: fall back to the letter's box
-    OCC[key] = cells;
-    return cells;
+      res = { grid:grid, cells:cells };
+    }catch(e){ res = null; }                      // e.g. page opened as a local file: fall back to the letter's box
+    OCC[key] = res;
+    return res;
   }
 
-  function place(font, ch, side){
+  /* one letter at its own size, centred on (0,0) for now */
+  function place(font, ch){
     var lm = font.m.letters[ch];
     if(!lm) return null;
     var tw = font.tweaks[ch] || {};
     var k = font.cap / font.m.capH * (tw.sc || 1);      // image px -> % of seal width
-    var gw = lm.w * k, gh = lm.h * k;
-    var y = (side < 0 ? font.y1 : font.y2) + (tw.dy || 0);
-    if(font.align === "base"){ y += font.cap / 2 + (font.by || 0) - lm.base * k + gh / 2; }
-    return { ch:ch, lm:lm, k:k, x:(tw.dx || 0), y:y, gw:gw, gh:gh };
+    return { ch:ch, lm:lm, k:k, x:(tw.dx || 0), y:(tw.dy || 0), gw:lm.w * k, gh:lm.h * k };
   }
 
   /* points that describe each letter's ink, in % of seal width from the seal centre */
@@ -261,13 +288,27 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     if(!occ){
       pts.push([x0, y0], [x0 + g.gw, y0], [x0, y0 + g.gh], [x0 + g.gw, y0 + g.gh]);
     } else {
-      for(var i = 0; i < occ.length; i++){
-        var l = x0 + occ[i][0] / N * g.gw, r = x0 + (occ[i][0] + 1) / N * g.gw;
-        var t = y0 + occ[i][1] / N * g.gh, b = y0 + (occ[i][1] + 1) / N * g.gh;
+      var c = occ.cells;
+      for(var i = 0; i < c.length; i++){
+        var l = x0 + c[i][0] / N * g.gw, r = x0 + (c[i][0] + 1) / N * g.gw;
+        var t = y0 + c[i][1] / N * g.gh, b = y0 + (c[i][1] + 1) / N * g.gh;
         pts.push([l, t], [r, t], [l, b], [r, b]);
       }
     }
     return pts;
+  }
+
+  /* how much of the smaller letter's ink lands on the other letter's ink (0 to 1) */
+  function inkOverlap(font, a, b){
+    var oa = occupancy(font, a.ch), ob = occupancy(font, b.ch), N = OCC_N;
+    if(!oa || !ob) return 0;
+    var hit = 0, ax = a.x - a.gw / 2, ay = a.y - a.gh / 2, bx = b.x - b.gw / 2, by = b.y - b.gh / 2;
+    for(var i = 0; i < ob.cells.length; i++){
+      var px = bx + (ob.cells[i][0] + .5) / N * b.gw, py = by + (ob.cells[i][1] + .5) / N * b.gh;
+      var ix = Math.floor((px - ax) / a.gw * N), iy = Math.floor((py - ay) / a.gh * N);
+      if(ix >= 0 && iy >= 0 && ix < N && iy < N && oa.grid[iy * N + ix]) hit++;
+    }
+    return hit / Math.max(1, Math.min(oa.cells.length, ob.cells.length));
   }
 
   /* scale (<=1) needed to fit all points inside the crest when the group centre is at (cx, cy) */
@@ -280,27 +321,33 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     return m <= 1 ? 1 : 1 / Math.sqrt(m);
   }
 
+  /* Layout:
+     1. letter 1 sits high, letter 2 low, overlapping up/down by font.vo
+     2. letter 2 slides sideways toward letter 1 until their real strokes overlap by font.ink
+        (round and swashy shapes tuck in further than straight ones)
+     3. the whole monogram is centred on the crest by its ink: equal space left/right and top/bottom
+     4. if any ink would cross the crest, the whole monogram shrinks until it fits */
   function layoutPair(font, pair){
-    var g = [place(font, pair[0], -1), place(font, pair[1], 1)].filter(Boolean);
+    var g = [place(font, pair[0]), place(font, pair[1])].filter(Boolean);
     if(!g.length) return null;
-    if(g.length === 2){            // centres sit apart by the letters' widths minus the overlap
-      var sep = (g[0].gw + g[1].gw) / 2 - font.ov * Math.min(g[0].gw, g[1].gw);
-      g[0].x += -sep / 2; g[1].x += sep / 2;
+    if(g.length === 2){
+      var a = g[0], b = g[1], bx0 = b.x;
+      var total = a.gh + b.gh - font.vo * Math.min(a.gh, b.gh);         // height of both letters together
+      a.y += -total / 2 + a.gh / 2;                                      // letter 1: top
+      b.y += total / 2 - b.gh / 2;                                       // letter 2: bottom
+      var far = (a.gw + b.gw) / 2, near = far * font.near, sep = far;
+      for(; sep > near; sep -= 0.25){
+        b.x = bx0 + a.x + sep;
+        if(inkOverlap(font, a, b) >= font.ink) break;
+      }
+      b.x = bx0 + a.x + Math.max(sep, near);
     }
     var pts = [];
     g.forEach(function(p){ pts = pts.concat(inkPoints(font, p)); });
     var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
     pts.forEach(function(q){ minX = Math.min(minX, q[0]); maxX = Math.max(maxX, q[0]); minY = Math.min(minY, q[1]); maxY = Math.max(maxY, q[1]); });
-    var bx = (minX + maxX) / 2, by = (minY + maxY) / 2;
-    // try a few small shifts of the whole monogram; keep the one that lets it stay biggest
-    var best = { s:-1, cx:bx, cy:by, score:-1 };
-    for(var ox = -5; ox <= 5; ox++){
-      for(var oy = -5; oy <= 5; oy++){
-        var sc = fitScale(pts, bx + ox, by + oy), score = sc - 0.004 * Math.sqrt(ox * ox + oy * oy);
-        if(score > best.score){ best = { s:sc, cx:bx + ox, cy:by + oy, score:score }; }
-      }
-    }
-    return { g:g, s:best.s, cx:best.cx, cy:best.cy };
+    var cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    return { g:g, s:fitScale(pts, cx, cy), cx:cx, cy:cy, w:maxX - minX, h:maxY - minY };
   }
 
   function glyphsHTML(font, pair, sealImg){
@@ -323,10 +370,10 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
   window.__seal = { FONTS: FONTS, FRAME: FRAME, layoutPair: layoutPair };   // for testing
 
   function sealHTML(listingId, colour, font, letters, isSample){
-    var t = tones(colour.hex);
+    var t = tones(colour.hex, font.dark);
     var img = colour.image || ("seals/" + listingId + "/" + slug(colour.name) + ".png");
     return (
-      '<div class="seal'+(isSample?' sample':'')+'" style="--wax:'+t.wax+';--ink-wax:'+t.ink+';--hi:'+t.hi+';--sd:'+t.sd+'">' +
+      '<div class="seal'+(isSample?' sample':'')+'" style="--wax:'+t.wax+';--ink-wax:'+t.ink+';--hi:'+t.hi+';--sd:'+t.sd+';--deep:'+t.deep+'" oncontextmenu="return false">' +
         '<div class="wax"></div>' +
         '<img src="'+img+'" alt="" loading="lazy">' +
         '<div class="mono">' + glyphsHTML(font, letters, img) + '</div>' +
@@ -383,7 +430,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
       card.innerHTML =
         '<span class="tick">&#10003;</span>' +
         sealHTML(L.id, colour, f, cur.pair, cur.sample) +
-        '<div class="num">Font '+f.id+'</div><div class="fname">'+f.name+'</div>';
+        '<div class="num">Font '+f.id+'</div>';
       card.addEventListener("click", function(){ state.font = f.id; renderFonts(); renderSeals(); renderCopy(); });
       box.appendChild(card);
     });
@@ -401,13 +448,13 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     });
     $("sealsHint").textContent = cur.sample
       ? "Showing sample letters. Type your two initials above."
-      : "Font "+font.id+" ("+font.name+") on each colour.";
+      : "Font "+font.id+" on each colour.";
     wireImages(box);
   }
 
   function choiceText(){
     var L = state.listing, f = FONTS[state.font-1], l = state.letters;
-    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id + " (" + f.name + ") · " +
+    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id + " · " +
            L.colours.map(function(c){return c.name;}).join(", ");
   }
 
@@ -454,7 +501,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     L.id = id;
     state.listing = L;
     $("listingName").textContent = L.name;
-    document.title = L.name + " | Seal Previewer | Herald & Bell Studio";
+    document.title = L.name + " | Seal Mock-up | Herald & Bell Studio";
     $("tool").hidden = false;
 
     var input = $("initials");
