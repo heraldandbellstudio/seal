@@ -89,17 +89,17 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 .seal img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .seal.noimg img{display:none}
 
-/* monogram: two real letter images used as masks, tinted per wax colour.
-   Letter 1 sits up-left, letter 2 down-right, overlapping. */
+/* monogram: each letter is a cut-out of the seal photo itself, so the wax texture runs
+   straight through it. A light edge (top-left) and soft shadow (bottom-right) raise it. */
 .mono{
   position:absolute;inset:0;pointer-events:none;
-  filter:drop-shadow(0 .5cqw 0 var(--hi)) drop-shadow(0 -.35cqw 0 rgba(0,0,0,.30));
+  filter:drop-shadow(.55cqw .75cqw .4cqw var(--sd)) drop-shadow(-.32cqw -.45cqw .2cqw var(--hi));
 }
 .glyph{
   position:absolute;left:50%;top:50%;
   width:calc(var(--gw) * 1cqw);height:calc(var(--gh) * 1cqw);
   transform:translate(calc(-50% + var(--x) * 1cqw),calc(-50% + var(--y) * 1cqw));
-  background:var(--ink-wax);
+  background:var(--seal) calc(var(--bgx) * 1cqw) calc(var(--bgy) * 1cqw) / 100cqw 120cqw no-repeat, var(--wax);
   -webkit-mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
           mask:var(--img) calc(var(--mx) * 1cqw) calc(var(--my) * 1cqw) / calc(var(--sw) * 1cqw) calc(var(--sh) * 1cqw) no-repeat;
 }
@@ -171,7 +171,8 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
      FONTS (shared by all listings)
      Real letter images: fonts/<folder>/sprite.png (A-Z in one sheet) + metrics.json
      cap   : cap height as % of seal width (bigger = larger letters)
-     dx    : letter 1 sits dx% left of centre, letter 2 dx% right
+     ov    : how much the two letters overlap, as a share of the narrower letter's width.
+             0 = just touching, 0.3 = overlap by 30%, higher = more overlap
      dy    : letter 1 sits dy% above centre, letter 2 dy% below
      align : "base"   = lines letters up on the baseline (clean serif fonts)
              "center" = lines up on the middle of each letter (swashy / script)
@@ -180,10 +181,10 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
              dx, dy = move that letter (% of seal width). sc = scale it.
      ------------------------------------------------------------------ */
   var FONTS = [
-    { id:1, name:"Symphony",           folder:"symphony",          cap:25, dx:8,  dy:4.5, align:"center", by:0, tweaks:{} },
-    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, dx:8,  dy:4, align:"base",   by:0, tweaks:{} },
-    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, dx:9,  dy:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
-    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, dx:9,  dy:4, align:"base",   by:0, tweaks:{} }
+    { id:1, name:"Symphony",           folder:"symphony",          cap:28, ov:.36, dy:4.5, align:"center", by:0, tweaks:{} },
+    { id:2, name:"The Silver Edition", folder:"silver-edition",    cap:29, ov:.28, dy:4, align:"base",   by:0, tweaks:{} },
+    { id:3, name:"Cinzel Decorative",  folder:"cinzel-decorative", cap:25, ov:.28, dy:4, align:"center", by:0, tweaks:{ Q:{sc:.82} } },
+    { id:4, name:"TAN Aegean",         folder:"tan-aegean",        cap:25, ov:.28, dy:4, align:"base",   by:0, tweaks:{} }
   ];
 
   var SAMPLE = ["H","R"];
@@ -206,36 +207,66 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     return {
       wax: css(base),
       ink: css(mix(base,[0,0,0],.40)),
-      hi : css(mix(base,[255,255,255],.55), .9)
+      hi : css(mix(base,[255,255,255],.75), .95),   // light edge, top-left of each letter
+      sd : css(mix(base,[0,0,0],.65), .80)          // soft shadow, bottom-right of each letter
     };
   }
   function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 
   /* ---------- render one seal ---------- */
-  function glyph(font, ch, side){
+  /* Safe area inside the seal frame, as % of seal width. The pair of letters is
+     shrunk and centred automatically so it never crosses the frame.
+     Make w/h smaller = letters sit further inside the frame. */
+  var FIT = { w:45, h:52, cx:0, cy:0 };
+
+  function place(font, ch, side){
     var lm = font.m.letters[ch];
-    if(!lm) return "";
+    if(!lm) return null;
     var tw = font.tweaks[ch] || {};
     var k = font.cap / font.m.capH * (tw.sc || 1);      // image px -> % of seal width
     var gw = lm.w * k, gh = lm.h * k;
-    var x = side * font.dx + (tw.dx || 0);
     var y = side * font.dy + (tw.dy || 0);
     if(font.align === "base"){ y += font.cap / 2 + (font.by || 0) - lm.base * k + gh / 2; }
-    return '<div class="glyph" style="--gw:' + gw.toFixed(2) + ';--gh:' + gh.toFixed(2) +
-           ';--x:' + x.toFixed(2) + ';--y:' + y.toFixed(2) +
-           ';--mx:' + (-lm.x * k).toFixed(3) + ';--my:' + (-lm.y * k).toFixed(3) +
-           ';--sw:' + (font.m.sheet.w * k).toFixed(3) + ';--sh:' + (font.m.sheet.h * k).toFixed(3) +
-           ';--img:url(\'fonts/' + font.folder + '/sprite.png\')"></div>';
+    return { ch:ch, lm:lm, k:k, x:(tw.dx || 0), y:y, gw:gw, gh:gh };
+  }
+
+  function glyphsHTML(font, pair, sealImg){
+    var g = [place(font, pair[0], -1), place(font, pair[1], 1)].filter(Boolean);
+    if(!g.length) return "";
+    if(g.length === 2){            // centres sit apart by a share of the letters' own width
+      var sep = (g[0].gw + g[1].gw) / 2 - font.ov * Math.min(g[0].gw, g[1].gw);
+      g[0].x += -sep / 2; g[1].x += sep / 2;
+    }
+    var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+    g.forEach(function(p){
+      minX = Math.min(minX, p.x - p.gw/2); maxX = Math.max(maxX, p.x + p.gw/2);
+      minY = Math.min(minY, p.y - p.gh/2); maxY = Math.max(maxY, p.y + p.gh/2);
+    });
+    var s = Math.min(1, FIT.w / (maxX - minX), FIT.h / (maxY - minY));
+    var ccx = (minX + maxX) / 2, ccy = (minY + maxY) / 2;
+    return g.map(function(p){
+      var k = p.k * s;
+      var x = (p.x - ccx) * s + FIT.cx, y = (p.y - ccy) * s + FIT.cy;
+      var gw = p.gw*s, gh = p.gh*s;
+      var left = 50 + x - gw/2, top = 60 + y - gh/2;      // glyph corner inside the seal box (seal box is 100 x 120)
+      return '<div class="glyph" style="--gw:' + gw.toFixed(2) + ';--gh:' + gh.toFixed(2) +
+             ';--bgx:' + (-left).toFixed(2) + ';--bgy:' + (-top).toFixed(2) +
+             ';--seal:url(\'' + sealImg + '\')' +
+             ';--x:' + x.toFixed(2) + ';--y:' + y.toFixed(2) +
+             ';--mx:' + (-p.lm.x * k).toFixed(3) + ';--my:' + (-p.lm.y * k).toFixed(3) +
+             ';--sw:' + (font.m.sheet.w * k).toFixed(3) + ';--sh:' + (font.m.sheet.h * k).toFixed(3) +
+             ';--img:url(\'fonts/' + font.folder + '/sprite.png\')"></div>';
+    }).join("");
   }
 
   function sealHTML(listingId, colour, font, letters, isSample){
     var t = tones(colour.hex);
     var img = colour.image || ("seals/" + listingId + "/" + slug(colour.name) + ".png");
     return (
-      '<div class="seal'+(isSample?' sample':'')+'" style="--wax:'+t.wax+';--ink-wax:'+t.ink+';--hi:'+t.hi+'">' +
+      '<div class="seal'+(isSample?' sample':'')+'" style="--wax:'+t.wax+';--ink-wax:'+t.ink+';--hi:'+t.hi+';--sd:'+t.sd+'">' +
         '<div class="wax"></div>' +
         '<img src="'+img+'" alt="" loading="lazy">' +
-        '<div class="mono">' + glyph(font, letters[0], -1) + glyph(font, letters[1], 1) + '</div>' +
+        '<div class="mono">' + glyphsHTML(font, letters, img) + '</div>' +
       '</div>'
     );
   }
