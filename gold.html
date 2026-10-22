@@ -56,11 +56,16 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 .fonts .fontcard:nth-child(3){grid-column:1/-1;justify-self:center;width:calc(50% - 6px)}
 @media (min-width:600px){.fonts{max-width:none;grid-template-columns:repeat(3,1fr)}.fonts .fontcard:nth-child(3){grid-column:auto;width:auto;justify-self:stretch}}
 .fontcard{
-  position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  position:relative;container-type:inline-size;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;
   padding:10px 10px 12px;cursor:pointer;text-align:center;font:inherit;color:var(--ink);
 }
 .fontcard[aria-checked="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.fontcard .num{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.fontcard .fname{display:block;margin-top:2px;line-height:1;font-size:min(1.05rem,7.4cqw);white-space:nowrap;min-height:1.7em;padding-top:.45em}
+.fontcard .fname i{display:inline-block;font-style:normal;background:var(--ink);
+  width:calc(var(--w) * 1em);height:calc(var(--h) * 1em);margin-right:.14em;vertical-align:calc(var(--vb) * 1em);
+  -webkit-mask:var(--img) calc(var(--mx) * 1em) calc(var(--my) * 1em) / calc(var(--sw) * 1em) calc(var(--sh) * 1em) no-repeat;
+          mask:var(--img) calc(var(--mx) * 1em) calc(var(--my) * 1em) / calc(var(--sw) * 1em) calc(var(--sh) * 1em) no-repeat}
+.fontcard .fname i.sp{background:none;-webkit-mask:none;mask:none;width:.5em}
 .fontcard .tick{
   position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;
   border:1px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:transparent;
@@ -208,9 +213,9 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
              dx, dy = move that letter (% of seal width). sc = scale it.
      ------------------------------------------------------------------ */
   var FONTS = [
-    { id:1, folder:"symphony",          cap:28, dark:1.6, vo:.30, ink:.07, near:.10, tweaks:{} },
-    { id:2, folder:"silver-edition",    cap:29, vo:.62, ink:.015, near:.72, tweaks:{} },
-    { id:3, folder:"calgary",           cap:27, dark:1.35, vo:.40, ink:.06, near:.30, tweaks:{} }
+    { id:1, label:"Symphony",          folder:"symphony",          cap:28, dark:1.6, vo:.30, ink:.07, near:.10, tweaks:{} },
+    { id:2, label:"The Silver Edition", folder:"silver-edition",    cap:29, vo:.62, ink:.015, near:.72, tweaks:{} },
+    { id:3, label:"Calgary",           folder:"calgary",           cap:27, dark:1.35, vo:.40, ink:.06, near:.30, tweaks:{} }
   ];
 
   var SAMPLE = ["H","R"];
@@ -348,6 +353,21 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     return { g:g, s:fitScale(pts, cx, cy), cx:cx, cy:cy, w:maxX - minX, h:maxY - minY };
   }
 
+  /* the style's name, written with its own letters (same images as the seal) */
+  function labelHTML(font){
+    var k = 0.86 / font.m.capH, out = "";                // cap height = 0.86em
+    font.label.toUpperCase().split("").forEach(function(ch){
+      var lm = font.m.letters[ch];
+      if(!lm){ out += '<i class="sp"></i>'; return; }
+      out += '<i style="--w:' + (lm.w * k).toFixed(3) + ';--h:' + (lm.h * k).toFixed(3) +
+             ';--vb:' + (-(lm.h - lm.base) * k).toFixed(3) +
+             ';--mx:' + (-lm.x * k).toFixed(3) + ';--my:' + (-lm.y * k).toFixed(3) +
+             ';--sw:' + (font.m.sheet.w * k).toFixed(3) + ';--sh:' + (font.m.sheet.h * k).toFixed(3) +
+             ';--img:url(\'fonts/' + font.folder + '/sprite.png\')"></i>';
+    });
+    return '<span class="fname" role="img" aria-label="' + font.label + '">' + out + '</span>';
+  }
+
   function glyphsHTML(font, pair, sealImg){
     var L = layoutPair(font, pair);
     if(!L) return "";
@@ -413,7 +433,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
       card.innerHTML =
         '<span class="tick">&#10003;</span>' +
         sealHTML(L.id, colour, f, cur.pair, cur.sample) +
-        '<div class="num">Font '+f.id+'</div>';
+        labelHTML(f);
       card.addEventListener("click", function(){ state.font = f.id; renderFonts(); renderSeals(); renderCopy(); });
       box.appendChild(card);
     });
@@ -431,13 +451,13 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
     });
     $("sealsHint").textContent = cur.sample
       ? "Showing sample letters. Type your two initials above."
-      : "Your seal in Font "+font.id+".";
+      : "Your seal in "+font.label+".";
     wireImages(box);
   }
 
   function choiceText(){
     var L = state.listing, f = FONTS[state.font-1], l = state.letters;
-    return L.name + " · " + l[0] + " & " + l[1] + " · Font " + f.id;
+    return L.name + " · " + l[0] + " & " + l[1] + " · " + f.label;
   }
 
   function renderCopy(){
