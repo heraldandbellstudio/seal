@@ -54,7 +54,7 @@ h2 span{display:inline-block;width:1.6em;height:1.6em;line-height:1.55em;text-al
 /* font gallery */
 .fonts{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:480px;margin:0 auto}
 .fonts .fontcard:nth-child(3){grid-column:1/-1;justify-self:center;width:calc(50% - 6px)}
-@media (min-width:600px){.fonts{max-width:none;grid-template-columns:repeat(3,1fr)}.fonts .fontcard:nth-child(3){grid-column:auto;width:auto}}
+@media (min-width:600px){.fonts{max-width:none;grid-template-columns:repeat(3,1fr)}.fonts .fontcard:nth-child(3){grid-column:auto;width:auto;justify-self:stretch}}
 .fontcard{
   position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
   padding:10px 10px 12px;cursor:pointer;text-align:center;font:inherit;color:var(--ink);
